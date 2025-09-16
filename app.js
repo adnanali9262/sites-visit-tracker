@@ -94,3 +94,48 @@ function clearCacheAndReload(full=false){ if(full)localStorage.clear(); caches.k
 
 // PWA install
 window.addEventListener('beforeinstallprompt', e=>{
+  e.preventDefault();
+  deferredPrompt=e;
+  const installBtn=document.getElementById('installBtn');
+  installBtn.style.display='block';
+});
+function installApp(){
+  if(deferredPrompt){
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then(choice=>{ deferredPrompt=null; document.getElementById('installBtn').style.display='none'; });
+  }
+}
+
+// Service Worker
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{ navigator.serviceWorker.register('/sites-visit-tracker/service-worker.js').then(reg=>console.log('SW registered',reg.scope)).catch(err=>console.log('SW failed',err)); });
+}
+
+// Init
+renderSites();
+
+// Daily notifications
+if("Notification" in window && Notification.permission!=="denied"){ Notification.requestPermission(); }
+setInterval(()=>{
+  sites.forEach(s=>{
+    let days = s.lastVisit?Math.floor((Date.now()-new Date(s.lastVisit))/(1000*60*60*24)):Infinity;
+    if(days>threshold) new Notification("Site Overdue",{body:`${s.name} not visited in ${days} days.`});
+  });
+},24*60*60*1000);
+
+// Attach all buttons after DOM ready
+document.addEventListener("DOMContentLoaded", function() {
+  document.getElementById("addSiteBtn").addEventListener("click", showAddSiteDialog);
+  document.getElementById("settingsBtn").addEventListener("click", openSettings);
+  document.querySelector("#cancelAddBtn").addEventListener("click", closeAddSiteDialog);
+  document.querySelector("#confirmAddBtn").addEventListener("click", addSite);
+  document.querySelector("#saveSettingsBtn").addEventListener("click", saveSettings);
+  document.querySelector("#clearCacheBtn").addEventListener("click", ()=>clearCacheAndReload(false));
+  document.querySelector("#fullResetBtn").addEventListener("click", ()=>clearCacheAndReload(true));
+  document.querySelectorAll(".whatsappBtn").forEach(btn=>{
+    btn.addEventListener("click",function(){
+      const cat = btn.closest("section").querySelector("h2").textContent.toLowerCase().includes("indoor") ? "indoor" : "outdoor";
+      shareWhatsApp(cat);
+    });
+  });
+});
