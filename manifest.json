@@ -2,7 +2,7 @@
   "name": "Personal Site Visit Tracker",
   "short_name": "Site Tracker",
   "description": "Track your site visits efficiently.",
-"start_url": "/sites-visit-tracker/"
+  "start_url": "/sites-visit-tracker/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#4F46E5",
