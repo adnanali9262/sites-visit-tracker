@@ -2,47 +2,56 @@ let sites = JSON.parse(localStorage.getItem("sites")) || [];
 let threshold = parseInt(localStorage.getItem("threshold")) || 7;
 let deferredPrompt;
 
-// give each site a unique ID
+// Generate unique ID for each site
 function createId() {
   return "_" + Math.random().toString(36).substr(2, 9);
 }
 
+// Save sites to localStorage
 function saveSites() {
   localStorage.setItem("sites", JSON.stringify(sites));
   renderSites();
 }
 
+// Render site cards
 function renderSites() {
   ["indoor", "outdoor"].forEach(cat => {
     const section = document.getElementById(`${cat}-section`);
     section.innerHTML = "";
 
     let filtered = sites.filter(s => s.category === cat);
-    filtered.sort((a, b) => new Date(a.lastVisit) - new Date(b.lastVisit));
+    filtered.sort((a, b) => new Date(a.lastVisit || 0) - new Date(b.lastVisit || 0));
 
     filtered.forEach(site => {
-      let daysPassed = site.lastVisit ? Math.floor((Date.now() - new Date(site.lastVisit)) / (1000*60*60*24)) : Infinity;
-      let bgClass = daysPassed < threshold ? "bg-green-100" :
-                    daysPassed === threshold ? "bg-yellow-100" : "bg-red-200";
+      let daysPassed = site.lastVisit ? Math.floor((Date.now() - new Date(site.lastVisit)) / (1000*60*60*24)) : 0;
+
+      // Color gradient: green if within threshold, red gradient if overdue
+      let bgColor = daysPassed <= threshold 
+        ? "#d1fae5" // green-100
+        : `hsl(0, 70%, ${Math.min(50 + (daysPassed - threshold) * 5, 90)}%)`; // red gradient
 
       let card = document.createElement("div");
-      card.className = `p-3 rounded shadow flex justify-between items-center ${bgClass}`;
+      card.className = `p-3 rounded shadow flex justify-between items-center`;
+      card.style.backgroundColor = bgColor;
+      card.style.maxWidth = "fit-content";
 
       card.innerHTML = `
-        <span class="font-medium">${site.name}</span>
+        <span class="font-medium site-name" style="cursor:pointer">${site.name}</span>
         <input type="date" value="${site.lastVisit || ""}" 
           onchange="updateDate('${site.id}', this.value)" 
           class="border rounded p-1 text-sm ml-3">
       `;
 
-      card.addEventListener("touchstart", (e) => handleLongPress(e, site.id));
-      card.addEventListener("mousedown", (e) => handleLongPress(e, site.id));
+      // Attach long-press only to site-name span
+      let span = card.querySelector(".site-name");
+      attachLongPress(span, site.id);
 
       section.appendChild(card);
     });
   });
 }
 
+// Update date
 function updateDate(id, date) {
   let site = sites.find(s => s.id === id);
   if (site) {
@@ -51,27 +60,38 @@ function updateDate(id, date) {
   }
 }
 
-let pressTimer;
-function handleLongPress(e, id) {
-  clearTimeout(pressTimer);
-  pressTimer = setTimeout(() => {
-    let site = sites.find(s => s.id === id);
-    if (!site) return;
-
-    if (confirm("Edit site name?")) {
-      let newName = prompt("Enter new site name:", site.name);
-      if (newName) site.name = newName;
-    } else if (confirm("Delete this site?")) {
-      sites = sites.filter(s => s.id !== id);
-    }
-    saveSites();
-  }, 600);
-  e.target.addEventListener("mouseup", () => clearTimeout(pressTimer));
-  e.target.addEventListener("mouseleave", () => clearTimeout(pressTimer));
+// Long-press helpers
+function attachLongPress(element, id) {
+  let pressTimer;
+  element.addEventListener("touchstart", e => {
+    pressTimer = setTimeout(() => handleEditDelete(id), 600);
+  });
+  element.addEventListener("mousedown", e => {
+    pressTimer = setTimeout(() => handleEditDelete(id), 600);
+  });
+  element.addEventListener("mouseup", e => clearTimeout(pressTimer));
+  element.addEventListener("mouseleave", e => clearTimeout(pressTimer));
 }
 
+// Edit/Delete site
+function handleEditDelete(id) {
+  let site = sites.find(s => s.id === id);
+  if (!site) return;
+
+  if (confirm("Edit site name?")) {
+    let newName = prompt("Enter new site name:", site.name);
+    if (newName) site.name = newName;
+  } else if (confirm("Delete this site?")) {
+    sites = sites.filter(s => s.id !== id);
+  }
+  saveSites();
+}
+
+// Show/close add site dialog
 function showAddSiteDialog() { document.getElementById("addSiteDialog").classList.remove("hidden"); }
 function closeAddSiteDialog() { document.getElementById("addSiteDialog").classList.add("hidden"); }
+
+// Add site
 function addSite() {
   let name = document.getElementById("siteNameInput").value.trim();
   let category = document.getElementById("siteCategoryInput").value;
@@ -83,6 +103,7 @@ function addSite() {
   }
 }
 
+// WhatsApp share
 function shareWhatsApp(category) {
   let overdue = sites.filter(s => s.category === category).filter(s => {
     let daysPassed = s.lastVisit ? Math.floor((Date.now() - new Date(s.lastVisit)) / (1000*60*60*24)) : Infinity;
@@ -97,6 +118,7 @@ function shareWhatsApp(category) {
   window.open(url, "_blank");
 }
 
+// Settings modal
 function openSettings() { document.getElementById("settingsModal").classList.remove("hidden"); }
 function saveSettings() {
   threshold = parseInt(document.getElementById("thresholdInput").value) || 7;
@@ -110,7 +132,7 @@ function clearCacheAndReload(full=false) {
   location.reload(true);
 }
 
-// PWA Install
+// PWA install
 window.addEventListener("beforeinstallprompt", (e) => {
   e.preventDefault();
   deferredPrompt = e;
