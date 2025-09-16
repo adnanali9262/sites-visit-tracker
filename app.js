@@ -2,6 +2,11 @@ let sites = JSON.parse(localStorage.getItem("sites")) || [];
 let threshold = parseInt(localStorage.getItem("threshold")) || 7;
 let deferredPrompt;
 
+// give each site a unique ID
+function createId() {
+  return "_" + Math.random().toString(36).substr(2, 9);
+}
+
 function saveSites() {
   localStorage.setItem("sites", JSON.stringify(sites));
   renderSites();
@@ -15,44 +20,49 @@ function renderSites() {
     let filtered = sites.filter(s => s.category === cat);
     filtered.sort((a, b) => new Date(a.lastVisit) - new Date(b.lastVisit));
 
-    filtered.forEach((site, index) => {
+    filtered.forEach(site => {
       let daysPassed = site.lastVisit ? Math.floor((Date.now() - new Date(site.lastVisit)) / (1000*60*60*24)) : Infinity;
       let bgClass = daysPassed < threshold ? "bg-green-100" :
                     daysPassed === threshold ? "bg-yellow-100" : "bg-red-200";
 
       let card = document.createElement("div");
       card.className = `p-3 rounded shadow flex justify-between items-center ${bgClass}`;
-      card.style.maxWidth = "fit-content";
 
       card.innerHTML = `
         <span class="font-medium">${site.name}</span>
         <input type="date" value="${site.lastVisit || ""}" 
-          onchange="updateDate(${index}, this.value)" 
+          onchange="updateDate('${site.id}', this.value)" 
           class="border rounded p-1 text-sm ml-3">
       `;
 
-      card.addEventListener("touchstart", (e) => handleLongPress(e, index));
-      card.addEventListener("mousedown", (e) => handleLongPress(e, index));
+      card.addEventListener("touchstart", (e) => handleLongPress(e, site.id));
+      card.addEventListener("mousedown", (e) => handleLongPress(e, site.id));
 
       section.appendChild(card);
     });
   });
 }
 
-function updateDate(index, date) {
-  sites[index].lastVisit = date;
-  saveSites();
+function updateDate(id, date) {
+  let site = sites.find(s => s.id === id);
+  if (site) {
+    site.lastVisit = date;
+    saveSites();
+  }
 }
 
 let pressTimer;
-function handleLongPress(e, index) {
+function handleLongPress(e, id) {
   clearTimeout(pressTimer);
   pressTimer = setTimeout(() => {
+    let site = sites.find(s => s.id === id);
+    if (!site) return;
+
     if (confirm("Edit site name?")) {
-      let newName = prompt("Enter new site name:", sites[index].name);
-      if (newName) sites[index].name = newName;
+      let newName = prompt("Enter new site name:", site.name);
+      if (newName) site.name = newName;
     } else if (confirm("Delete this site?")) {
-      sites.splice(index, 1);
+      sites = sites.filter(s => s.id !== id);
     }
     saveSites();
   }, 600);
@@ -66,7 +76,7 @@ function addSite() {
   let name = document.getElementById("siteNameInput").value.trim();
   let category = document.getElementById("siteCategoryInput").value;
   if (name) {
-    sites.push({ name, category, lastVisit: "" });
+    sites.push({ id: createId(), name, category, lastVisit: "" });
     saveSites();
     closeAddSiteDialog();
     document.getElementById("siteNameInput").value = "";
