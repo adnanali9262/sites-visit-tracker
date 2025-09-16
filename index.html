@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Personal Site Visit Tracker</title>
+  <link rel="manifest" href="manifest.json">
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-gray-50 text-gray-800 flex flex-col h-screen">
+
+  <!-- Header -->
+  <header class="flex justify-between items-center p-4 bg-indigo-600 text-white shadow">
+    <h1 class="text-lg font-bold">Personal Site Visit Tracker</h1>
+    <button onclick="openSettings()" class="text-white hover:text-gray-200">
+      ⚙️
+    </button>
+  </header>
+
+  <!-- Tabs -->
+  <div class="flex justify-center space-x-4 bg-white shadow p-2">
+    <button onclick="switchTab('indoor')" id="tab-indoor"
+      class="px-4 py-2 rounded-lg bg-indigo-600 text-white font-medium">Indoor</button>
+    <button onclick="switchTab('outdoor')" id="tab-outdoor"
+      class="px-4 py-2 rounded-lg bg-gray-200 text-gray-800 font-medium">Outdoor</button>
+  </div>
+
+  <!-- Sections -->
+  <main class="flex-1 overflow-y-auto p-4">
+    <div id="indoor-section" class="grid gap-4"></div>
+    <div id="outdoor-section" class="hidden grid gap-4"></div>
+  </main>
+
+  <!-- Floating Add Button -->
+  <button onclick="showAddSiteDialog()"
+    class="fixed bottom-6 right-6 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full p-4 shadow-lg">
+    ➕
+  </button>
+
+  <!-- WhatsApp share buttons -->
+  <button onclick="shareWhatsApp('indoor')"
+    class="fixed bottom-20 left-6 bg-green-500 hover:bg-green-600 text-white rounded-full p-3 shadow-lg">
+    📤 Indoor
+  </button>
+  <button onclick="shareWhatsApp('outdoor')"
+    class="fixed bottom-6 left-6 bg-green-500 hover:bg-green-600 text-white rounded-full p-3 shadow-lg">
+    📤 Outdoor
+  </button>
+
+  <!-- Add Site Dialog -->
+  <div id="addSiteDialog" class="hidden fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center">
+    <div class="bg-white rounded-lg p-6 w-80 shadow-lg">
+      <h2 class="text-lg font-semibold mb-4">Add New Site</h2>
+      <input id="siteNameInput" type="text" placeholder="Site name"
+        class="w-full p-2 border rounded mb-4">
+      <select id="siteCategoryInput" class="w-full p-2 border rounded mb-4">
+        <option value="indoor">Indoor</option>
+        <option value="outdoor">Outdoor</option>
+      </select>
+      <div class="flex justify-end space-x-2">
+        <button onclick="closeAddSiteDialog()" class="px-4 py-2 bg-gray-300 rounded">Cancel</button>
+        <button onclick="addSite()" class="px-4 py-2 bg-indigo-600 text-white rounded">Add</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Settings Modal -->
+  <div id="settingsModal" class="hidden fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center">
+    <div class="bg-white rounded-lg p-6 w-96 shadow-lg">
+      <h3 class="text-xl font-semibold mb-4">Settings ⚙️</h3>
+
+      <label class="block mb-2 font-medium">Alarm threshold (days):</label>
+      <input type="number" id="thresholdInput" value="7" min="1" class="w-full p-2 border rounded mb-4">
+
+      <p class="text-sm text-gray-600 mb-4">
+        App developed by <b>Engr. Adnan Rafiq</b>
+      </p>
+
+      <div class="flex flex-col space-y-2">
+        <button onclick="saveSettings()" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Save</button>
+        <button onclick="clearCacheAndReload(false)" class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">Clear Cache Only</button>
+        <button onclick="clearCacheAndReload(true)" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">Full Reset</button>
+        <button id="installBtn" onclick="installApp()" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 hidden">📲 Install App</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
