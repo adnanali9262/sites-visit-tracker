@@ -6,7 +6,6 @@
   <title>Personal Site Visit Tracker</title>
   <link rel="manifest" href="manifest.json">
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
 </head>
 <body class="bg-gray-50 text-gray-800 flex flex-col min-h-screen">
 
@@ -28,7 +27,7 @@
         <h2 class="text-lg font-semibold">Indoor 🏠</h2>
         <button onclick="shareWhatsApp('indoor')" class="text-green-600 hover:text-green-800 text-xl">📤</button>
       </div>
-      <div id="indoor-section" class="flex flex-wrap gap-3"></div>
+      <div id="indoor-section" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"></div>
     </section>
 
     <!-- Outdoor Section -->
@@ -37,7 +36,7 @@
         <h2 class="text-lg font-semibold">Outdoor 🌳</h2>
         <button onclick="shareWhatsApp('outdoor')" class="text-green-600 hover:text-green-800 text-xl">📤</button>
       </div>
-      <div id="outdoor-section" class="flex flex-wrap gap-3"></div>
+      <div id="outdoor-section" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"></div>
     </section>
 
   </main>
