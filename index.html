@@ -1,67 +1,78 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Personal Site Visit Tracker</title>
-
-  <!-- Tailwind -->
-  <script src="https://cdn.tailwindcss.com"></script>
-
-  <!-- Manifest -->
   <link rel="manifest" href="/sites-visit-tracker/manifest.json">
-  <meta name="theme-color" content="#0f172a">
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 </head>
-<body class="bg-gray-100 text-gray-800">
+<body class="bg-gray-50 text-gray-800 flex flex-col min-h-screen">
 
-  <div class="max-w-3xl mx-auto p-4">
-    <div class="flex justify-between items-center mb-4">
-      <h1 class="text-2xl font-bold">📍 Personal Site Visit Tracker</h1>
-      <div class="flex gap-2">
-        <!-- Add Site -->
-        <button id="addSiteBtn" class="bg-blue-500 text-white px-3 py-2 rounded-lg hover:bg-blue-600">
-          ➕
-        </button>
-        <!-- Settings -->
-        <button id="settingsBtn" class="bg-gray-500 text-white px-3 py-2 rounded-lg hover:bg-gray-600">
-          ⚙️
-        </button>
-      </div>
+  <!-- Header -->
+  <header class="flex justify-between items-center p-4 bg-indigo-600 text-white shadow">
+    <h1 class="text-lg font-bold">Personal Site Visit Tracker</h1>
+    <div class="flex space-x-3 items-center">
+      <button onclick="showAddSiteDialog()" class="bg-white text-indigo-600 rounded-full px-3 py-1 text-sm shadow hover:bg-gray-100">➕</button>
+      <button onclick="openSettings()" class="text-white hover:text-gray-200">⚙️</button>
     </div>
+  </header>
+
+  <!-- Main Sections -->
+  <main class="flex-1 overflow-y-auto p-4 space-y-6">
 
     <!-- Indoor Section -->
-    <div class="mt-6">
-      <h2 class="text-lg font-semibold flex items-center gap-2">
-        <span>Indoor Sites</span>
-        <button id="whatsappIndoor" class="text-green-600 text-sm">💬</button>
-      </h2>
-      <div id="indoorSites" class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-2"></div>
-    </div>
+    <section>
+      <div class="flex justify-between items-center mb-3">
+        <h2 class="text-lg font-semibold">Indoor 🏠</h2>
+        <button onclick="shareWhatsApp('indoor')" class="text-green-600 hover:text-green-800 text-xl">📤</button>
+      </div>
+      <div id="indoor-section" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3"></div>
+    </section>
 
     <!-- Outdoor Section -->
-    <div class="mt-6">
-      <h2 class="text-lg font-semibold flex items-center gap-2">
-        <span>Outdoor Sites</span>
-        <button id="whatsappOutdoor" class="text-green-600 text-sm">💬</button>
-      </h2>
-      <div id="outdoorSites" class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-2"></div>
+    <section>
+      <div class="flex justify-between items-center mb-3">
+        <h2 class="text-lg font-semibold">Outdoor 🌳</h2>
+        <button onclick="shareWhatsApp('outdoor')" class="text-green-600 hover:text-green-800 text-xl">📤</button>
+      </div>
+      <div id="outdoor-section" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3"></div>
+    </section>
+
+  </main>
+
+  <!-- Add Site Dialog -->
+  <div id="addSiteDialog" class="hidden fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center">
+    <div class="bg-white rounded-lg p-6 w-80 shadow-lg">
+      <h2 class="text-lg font-semibold mb-4">Add New Site</h2>
+      <input id="siteNameInput" type="text" placeholder="Site name" class="w-full p-2 border rounded mb-4">
+      <select id="siteCategoryInput" class="w-full p-2 border rounded mb-4">
+        <option value="indoor">Indoor</option>
+        <option value="outdoor">Outdoor</option>
+      </select>
+      <div class="flex justify-end space-x-2">
+        <button onclick="closeAddSiteDialog()" class="px-4 py-2 bg-gray-300 rounded">Cancel</button>
+        <button onclick="addSite()" class="px-4 py-2 bg-indigo-600 text-white rounded">Add</button>
+      </div>
     </div>
   </div>
 
   <!-- Settings Modal -->
   <div id="settingsModal" class="hidden fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center">
-    <div class="bg-white rounded-xl shadow-lg p-6 w-80">
-      <h2 class="text-xl font-semibold mb-4">⚙️ Settings</h2>
-      <p class="mb-2">App by <strong>Engr. Adnan Rafiq</strong></p>
+    <div class="bg-white rounded-lg p-6 w-96 shadow-lg">
+      <h3 class="text-xl font-semibold mb-4">Settings ⚙️</h3>
 
-      <!-- Install App Button -->
-      <button id="installBtn" class="hidden w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700">
-        📲 Install App
-      </button>
+      <label class="block mb-2 font-medium">Alarm threshold (days):</label>
+      <input type="number" id="thresholdInput" value="7" min="1" class="w-full p-2 border rounded mb-4">
 
-      <button id="closeSettings" class="mt-4 w-full bg-gray-300 text-gray-800 py-2 rounded-lg hover:bg-gray-400">
-        Close
-      </button>
+      <p class="text-sm text-gray-600 mb-4">App developed by <b>Engr. Adnan Rafiq</b></p>
+
+      <div class="flex flex-col space-y-2">
+        <button onclick="saveSettings()" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Save</button>
+        <button onclick="clearCacheAndReload(false)" class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">Clear Cache Only</button>
+        <button onclick="clearCacheAndReload(true)" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">Full Reset</button>
+        <button id="installBtn" onclick="installApp()" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 hidden">📲 Install App</button>
+      </div>
     </div>
   </div>
 
