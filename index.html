@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Site Visit Tracker</title>
+  <title>Personal Site Visit Tracker</title>
 
   <!-- Tailwind -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -11,15 +11,12 @@
   <!-- Manifest -->
   <link rel="manifest" href="/sites-visit-tracker/manifest.json">
   <meta name="theme-color" content="#0f172a">
-
-  <!-- Icons -->
-  <link rel="apple-touch-icon" href="/sites-visit-tracker/icons/icon-192.png" />
 </head>
 <body class="bg-gray-100 text-gray-800">
-  <!-- App Wrapper -->
+
   <div class="max-w-3xl mx-auto p-4">
     <div class="flex justify-between items-center mb-4">
-      <h1 class="text-2xl font-bold">📍 Site Visit Tracker</h1>
+      <h1 class="text-2xl font-bold">📍 Personal Site Visit Tracker</h1>
       <div class="flex gap-2">
         <!-- Add Site -->
         <button id="addSiteBtn" class="bg-blue-500 text-white px-3 py-2 rounded-lg hover:bg-blue-600">
@@ -33,7 +30,7 @@
     </div>
 
     <!-- Indoor Section -->
-    <div>
+    <div class="mt-6">
       <h2 class="text-lg font-semibold flex items-center gap-2">
         <span>Indoor Sites</span>
         <button id="whatsappIndoor" class="text-green-600 text-sm">💬</button>
@@ -43,7 +40,10 @@
 
     <!-- Outdoor Section -->
     <div class="mt-6">
-      <h2 class="text-lg font-semibold">Outdoor Sites</h2>
+      <h2 class="text-lg font-semibold flex items-center gap-2">
+        <span>Outdoor Sites</span>
+        <button id="whatsappOutdoor" class="text-green-600 text-sm">💬</button>
+      </h2>
       <div id="outdoorSites" class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-2"></div>
     </div>
   </div>
@@ -53,16 +53,18 @@
     <div class="bg-white rounded-xl shadow-lg p-6 w-80">
       <h2 class="text-xl font-semibold mb-4">⚙️ Settings</h2>
       <p class="mb-2">App by <strong>Engr. Adnan Rafiq</strong></p>
+
+      <!-- Install App Button -->
       <button id="installBtn" class="hidden w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700">
         📲 Install App
       </button>
+
       <button id="closeSettings" class="mt-4 w-full bg-gray-300 text-gray-800 py-2 rounded-lg hover:bg-gray-400">
         Close
       </button>
     </div>
   </div>
 
-  <!-- App Script -->
   <script src="app.js"></script>
 </body>
 </html>
