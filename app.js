@@ -60,12 +60,8 @@ function updateDate(id, date) {
 // Long press
 function attachLongPress(element, id) {
   let pressTimer;
-  element.addEventListener("touchstart", e => {
-    pressTimer = setTimeout(() => handleEditDelete(id), 600);
-  });
-  element.addEventListener("mousedown", e => {
-    pressTimer = setTimeout(() => handleEditDelete(id), 600);
-  });
+  element.addEventListener("touchstart", e => { pressTimer = setTimeout(() => handleEditDelete(id), 600); });
+  element.addEventListener("mousedown", e => { pressTimer = setTimeout(() => handleEditDelete(id), 600); });
   element.addEventListener("mouseup", e => clearTimeout(pressTimer));
   element.addEventListener("mouseleave", e => clearTimeout(pressTimer));
 }
@@ -104,10 +100,7 @@ function shareWhatsApp(category) {
     let daysPassed = s.lastVisit ? Math.floor((Date.now() - new Date(s.lastVisit)) / (1000*60*60*24)) : Infinity;
     return daysPassed > threshold;
   });
-  if (!overdue.length) {
-    alert("No overdue sites.");
-    return;
-  }
+  if (!overdue.length) { alert("No overdue sites."); return; }
   let message = overdue.map(s => `${s.name} (${Math.floor((Date.now() - new Date(s.lastVisit)) / (1000*60*60*24))} days)`).join(", ");
   let url = `https://wa.me/?text=${encodeURIComponent(message + " are overdue!")}`;
   window.open(url, "_blank");
@@ -128,19 +121,29 @@ function clearCacheAndReload(full=false) {
 }
 
 // PWA install
-window.addEventListener("beforeinstallprompt", (e) => {
+window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
   deferredPrompt = e;
-  document.getElementById("installBtn").classList.remove("hidden");
+  const installBtn = document.getElementById('installBtn');
+  installBtn.style.display = 'block';
 });
 function installApp() {
   if (deferredPrompt) {
     deferredPrompt.prompt();
-    deferredPrompt.userChoice.then(() => {
+    deferredPrompt.userChoice.then((choiceResult) => {
       deferredPrompt = null;
-      document.getElementById("installBtn").classList.add("hidden");
+      document.getElementById('installBtn').style.display = 'none';
     });
   }
+}
+
+// Service Worker registration
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sites-visit-tracker/service-worker.js')
+      .then(reg => console.log('SW registered:', reg.scope))
+      .catch(err => console.log('SW registration failed:', err));
+  });
 }
 
 // Init
