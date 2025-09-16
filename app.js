@@ -21,13 +21,16 @@ function renderSites() {
                     daysPassed === threshold ? "bg-yellow-100" : "bg-red-200";
 
       let card = document.createElement("div");
-      card.className = `p-4 rounded shadow flex justify-between items-center ${bgClass}`;
+      card.className = `p-3 rounded shadow flex justify-between items-center ${bgClass}`;
+      card.style.maxWidth = "fit-content";
+
       card.innerHTML = `
         <span class="font-medium">${site.name}</span>
         <input type="date" value="${site.lastVisit || ""}" 
           onchange="updateDate(${index}, this.value)" 
-          class="border rounded p-1 text-sm">
+          class="border rounded p-1 text-sm ml-3">
       `;
+
       card.addEventListener("touchstart", (e) => handleLongPress(e, index));
       card.addEventListener("mousedown", (e) => handleLongPress(e, index));
 
@@ -57,12 +60,8 @@ function handleLongPress(e, index) {
   e.target.addEventListener("mouseleave", () => clearTimeout(pressTimer));
 }
 
-function showAddSiteDialog() {
-  document.getElementById("addSiteDialog").classList.remove("hidden");
-}
-function closeAddSiteDialog() {
-  document.getElementById("addSiteDialog").classList.add("hidden");
-}
+function showAddSiteDialog() { document.getElementById("addSiteDialog").classList.remove("hidden"); }
+function closeAddSiteDialog() { document.getElementById("addSiteDialog").classList.add("hidden"); }
 function addSite() {
   let name = document.getElementById("siteNameInput").value.trim();
   let category = document.getElementById("siteCategoryInput").value;
@@ -72,15 +71,6 @@ function addSite() {
     closeAddSiteDialog();
     document.getElementById("siteNameInput").value = "";
   }
-}
-
-function switchTab(tab) {
-  document.getElementById("indoor-section").classList.add("hidden");
-  document.getElementById("outdoor-section").classList.add("hidden");
-  document.getElementById(`tab-indoor`).className = "px-4 py-2 rounded-lg bg-gray-200 text-gray-800 font-medium";
-  document.getElementById(`tab-outdoor`).className = "px-4 py-2 rounded-lg bg-gray-200 text-gray-800 font-medium";
-  document.getElementById(`${tab}-section`).classList.remove("hidden");
-  document.getElementById(`tab-${tab}`).className = "px-4 py-2 rounded-lg bg-indigo-600 text-white font-medium";
 }
 
 function shareWhatsApp(category) {
@@ -97,9 +87,7 @@ function shareWhatsApp(category) {
   window.open(url, "_blank");
 }
 
-function openSettings() {
-  document.getElementById("settingsModal").classList.remove("hidden");
-}
+function openSettings() { document.getElementById("settingsModal").classList.remove("hidden"); }
 function saveSettings() {
   threshold = parseInt(document.getElementById("thresholdInput").value) || 7;
   localStorage.setItem("threshold", threshold);
@@ -107,9 +95,7 @@ function saveSettings() {
   document.getElementById("settingsModal").classList.add("hidden");
 }
 function clearCacheAndReload(full=false) {
-  if (full) {
-    localStorage.clear();
-  }
+  if (full) localStorage.clear();
   caches.keys().then(names => names.forEach(name => caches.delete(name)));
   location.reload(true);
 }
@@ -132,9 +118,8 @@ function installApp() {
 
 // Init
 renderSites();
-switchTab("indoor");
 
-// Notifications: check red sites daily
+// Notifications: daily check
 if ("Notification" in window && Notification.permission !== "denied") {
   Notification.requestPermission();
 }
@@ -145,4 +130,4 @@ setInterval(() => {
       new Notification("Site Overdue", { body: `${s.name} not visited in ${days} days.` });
     }
   });
-}, 24*60*60*1000); // daily
+}, 24*60*60*1000);
