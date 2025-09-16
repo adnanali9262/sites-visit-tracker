@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Personal Site Visit Tracker</title>
-  <link rel="manifest" href="manifest.json">
+  <link rel="manifest" href="/sites-visit-tracker/manifest.json">
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 </head>
 <body class="bg-gray-50 text-gray-800 flex flex-col min-h-screen">
@@ -18,7 +18,7 @@
     </div>
   </header>
 
-  <!-- Sections -->
+  <!-- Main Sections -->
   <main class="flex-1 overflow-y-auto p-4 space-y-6">
 
     <!-- Indoor Section -->
@@ -45,8 +45,7 @@
   <div id="addSiteDialog" class="hidden fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center">
     <div class="bg-white rounded-lg p-6 w-80 shadow-lg">
       <h2 class="text-lg font-semibold mb-4">Add New Site</h2>
-      <input id="siteNameInput" type="text" placeholder="Site name"
-        class="w-full p-2 border rounded mb-4">
+      <input id="siteNameInput" type="text" placeholder="Site name" class="w-full p-2 border rounded mb-4">
       <select id="siteCategoryInput" class="w-full p-2 border rounded mb-4">
         <option value="indoor">Indoor</option>
         <option value="outdoor">Outdoor</option>
@@ -66,9 +65,7 @@
       <label class="block mb-2 font-medium">Alarm threshold (days):</label>
       <input type="number" id="thresholdInput" value="7" min="1" class="w-full p-2 border rounded mb-4">
 
-      <p class="text-sm text-gray-600 mb-4">
-        App developed by <b>Engr. Adnan Rafiq</b>
-      </p>
+      <p class="text-sm text-gray-600 mb-4">App developed by <b>Engr. Adnan Rafiq</b></p>
 
       <div class="flex flex-col space-y-2">
         <button onclick="saveSettings()" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Save</button>
