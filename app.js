@@ -2,12 +2,12 @@ let sites = JSON.parse(localStorage.getItem("sites")) || [];
 let threshold = parseInt(localStorage.getItem("threshold")) || 7;
 let deferredPrompt;
 
-// Generate unique ID for each site
+// Generate unique ID
 function createId() {
   return "_" + Math.random().toString(36).substr(2, 9);
 }
 
-// Save sites to localStorage
+// Save sites
 function saveSites() {
   localStorage.setItem("sites", JSON.stringify(sites));
   renderSites();
@@ -25,26 +25,23 @@ function renderSites() {
     filtered.forEach(site => {
       let daysPassed = site.lastVisit ? Math.floor((Date.now() - new Date(site.lastVisit)) / (1000*60*60*24)) : 0;
 
-      // Color gradient: green if within threshold, red gradient if overdue
+      // Gradient color
       let bgColor = daysPassed <= threshold 
-        ? "#d1fae5" // green-100
-        : `hsl(0, 70%, ${Math.min(50 + (daysPassed - threshold) * 5, 90)}%)`; // red gradient
+        ? "#d1fae5"
+        : `hsl(0, 70%, ${Math.min(50 + (daysPassed - threshold)*5, 90)}%)`;
 
       let card = document.createElement("div");
       card.className = `p-3 rounded shadow flex justify-between items-center`;
       card.style.backgroundColor = bgColor;
-      card.style.maxWidth = "fit-content";
 
       card.innerHTML = `
-        <span class="font-medium site-name" style="cursor:pointer">${site.name}</span>
+        <span class="font-medium site-name cursor-pointer">${site.name}</span>
         <input type="date" value="${site.lastVisit || ""}" 
           onchange="updateDate('${site.id}', this.value)" 
           class="border rounded p-1 text-sm ml-3">
       `;
 
-      // Attach long-press only to site-name span
-      let span = card.querySelector(".site-name");
-      attachLongPress(span, site.id);
+      attachLongPress(card.querySelector(".site-name"), site.id);
 
       section.appendChild(card);
     });
@@ -60,7 +57,7 @@ function updateDate(id, date) {
   }
 }
 
-// Long-press helpers
+// Long press
 function attachLongPress(element, id) {
   let pressTimer;
   element.addEventListener("touchstart", e => {
@@ -73,7 +70,7 @@ function attachLongPress(element, id) {
   element.addEventListener("mouseleave", e => clearTimeout(pressTimer));
 }
 
-// Edit/Delete site
+// Edit/Delete
 function handleEditDelete(id) {
   let site = sites.find(s => s.id === id);
   if (!site) return;
@@ -87,11 +84,9 @@ function handleEditDelete(id) {
   saveSites();
 }
 
-// Show/close add site dialog
+// Add site
 function showAddSiteDialog() { document.getElementById("addSiteDialog").classList.remove("hidden"); }
 function closeAddSiteDialog() { document.getElementById("addSiteDialog").classList.add("hidden"); }
-
-// Add site
 function addSite() {
   let name = document.getElementById("siteNameInput").value.trim();
   let category = document.getElementById("siteCategoryInput").value;
@@ -103,7 +98,7 @@ function addSite() {
   }
 }
 
-// WhatsApp share
+// WhatsApp
 function shareWhatsApp(category) {
   let overdue = sites.filter(s => s.category === category).filter(s => {
     let daysPassed = s.lastVisit ? Math.floor((Date.now() - new Date(s.lastVisit)) / (1000*60*60*24)) : Infinity;
@@ -118,7 +113,7 @@ function shareWhatsApp(category) {
   window.open(url, "_blank");
 }
 
-// Settings modal
+// Settings
 function openSettings() { document.getElementById("settingsModal").classList.remove("hidden"); }
 function saveSettings() {
   threshold = parseInt(document.getElementById("thresholdInput").value) || 7;
@@ -151,7 +146,7 @@ function installApp() {
 // Init
 renderSites();
 
-// Notifications: daily check
+// Notifications daily
 if ("Notification" in window && Notification.permission !== "denied") {
   Notification.requestPermission();
 }
