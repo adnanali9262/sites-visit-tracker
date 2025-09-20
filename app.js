@@ -1,163 +1,140 @@
-let sites = JSON.parse(localStorage.getItem("sites")) || [];
+let sites = JSON.parse(localStorage.getItem("sites") || "[]");
 let threshold = parseInt(localStorage.getItem("threshold")) || 7;
-let deferredPrompt;
 
-// Generate unique ID
-function createId() {
-  return "_" + Math.random().toString(36).substr(2, 9);
+// Render sites into sections
+function renderSites() {
+  ["indoor", "outdoor"].forEach(category => {
+    const section = document.getElementById(`${category}-section`);
+    section.innerHTML = "";
+
+    sites
+      .filter(site => site.category === category)
+      .forEach(site => {
+        const daysPassed = site.lastVisit
+          ? Math.floor((Date.now() - new Date(site.lastVisit)) / (1000 * 60 * 60 * 24))
+          : 0;
+
+        // ✅ Green if within threshold, Red if over threshold (never pink)
+        const bgClass = daysPassed <= threshold ? "bg-green-100" : "bg-red-200";
+
+        const card = document.createElement("div");
+        card.className = `p-3 rounded shadow flex justify-between items-center ${bgClass}`;
+
+        card.innerHTML = `
+          <span class="font-medium site-name cursor-pointer">${site.name}</span>
+          <input type="date" value="${site.lastVisit || ""}" 
+            onchange="updateDate('${site.id}', this.value)" 
+            class="border rounded p-1 text-sm ml-3">
+        `;
+
+        attachLongPress(card.querySelector(".site-name"), site.id);
+        section.appendChild(card);
+      });
+  });
 }
 
-// Save sites
-function saveSites() {
+// Add site from dialog
+function showAddSiteDialog() {
+  document.getElementById("addSiteDialog").classList.remove("hidden");
+}
+function closeAddSiteDialog() {
+  document.getElementById("addSiteDialog").classList.add("hidden");
+}
+function addSite() {
+  const name = document.getElementById("siteNameInput").value.trim();
+  const category = document.getElementById("siteCategoryInput").value;
+  if (!name) return;
+
+  sites.push({ id: Date.now(), name, category, lastVisit: "" });
   localStorage.setItem("sites", JSON.stringify(sites));
+  closeAddSiteDialog();
   renderSites();
 }
 
-// Render site cards
-function renderSites() {
-  ["indoor", "outdoor"].forEach(cat => {
-    const section = document.getElementById(`${cat}-section`);
-    section.innerHTML = "";
-
-    let filtered = sites.filter(s => s.category === cat);
-    filtered.sort((a, b) => new Date(a.lastVisit || 0) - new Date(b.lastVisit || 0));
-
-    filtered.forEach(site => {
-      let daysPassed = site.lastVisit ? Math.floor((Date.now() - new Date(site.lastVisit)) / (1000*60*60*24)) : 0;
-
-      // Gradient color
-      let bgColor = daysPassed <= threshold 
-        ? "#d1fae5"
-        : `hsl(0, 70%, ${Math.min(50 + (daysPassed - threshold)*5, 90)}%)`;
-
-      let card = document.createElement("div");
-      card.className = `p-3 rounded shadow flex justify-between items-center`;
-      card.style.backgroundColor = bgColor;
-
-      card.innerHTML = `
-        <span class="font-medium site-name cursor-pointer">${site.name}</span>
-        <input type="date" value="${site.lastVisit || ""}" 
-          onchange="updateDate('${site.id}', this.value)" 
-          class="border rounded p-1 text-sm ml-3">
-      `;
-
-      attachLongPress(card.querySelector(".site-name"), site.id);
-
-      section.appendChild(card);
-    });
-  });
-}
-
-// Update date
+// Update site date
 function updateDate(id, date) {
-  let site = sites.find(s => s.id === id);
+  const site = sites.find(s => s.id == id);
   if (site) {
     site.lastVisit = date;
-    saveSites();
+    localStorage.setItem("sites", JSON.stringify(sites));
+    renderSites();
   }
 }
 
-// Long press
-function attachLongPress(element, id) {
-  let pressTimer;
-  element.addEventListener("touchstart", e => { pressTimer = setTimeout(() => handleEditDelete(id), 600); });
-  element.addEventListener("mousedown", e => { pressTimer = setTimeout(() => handleEditDelete(id), 600); });
-  element.addEventListener("mouseup", e => clearTimeout(pressTimer));
-  element.addEventListener("mouseleave", e => clearTimeout(pressTimer));
-}
-
-// Edit/Delete
-function handleEditDelete(id) {
-  let site = sites.find(s => s.id === id);
-  if (!site) return;
-
-  if (confirm("Edit site name?")) {
-    let newName = prompt("Enter new site name:", site.name);
-    if (newName) site.name = newName;
-  } else if (confirm("Delete this site?")) {
-    sites = sites.filter(s => s.id !== id);
-  }
-  saveSites();
-}
-
-// Add site
-function showAddSiteDialog() { document.getElementById("addSiteDialog").classList.remove("hidden"); }
-function closeAddSiteDialog() { document.getElementById("addSiteDialog").classList.add("hidden"); }
-function addSite() {
-  let name = document.getElementById("siteNameInput").value.trim();
-  let category = document.getElementById("siteCategoryInput").value;
-  if (name) {
-    sites.push({ id: createId(), name, category, lastVisit: "" });
-    saveSites();
-    closeAddSiteDialog();
-    document.getElementById("siteNameInput").value = "";
-  }
-}
-
-// WhatsApp
-function shareWhatsApp(category) {
-  let overdue = sites.filter(s => s.category === category).filter(s => {
-    let daysPassed = s.lastVisit ? Math.floor((Date.now() - new Date(s.lastVisit)) / (1000*60*60*24)) : Infinity;
-    return daysPassed > threshold;
+// Long press delete
+function attachLongPress(el, id) {
+  let timer;
+  el.addEventListener("mousedown", () => {
+    timer = setTimeout(() => {
+      if (confirm("Delete this site?")) {
+        sites = sites.filter(s => s.id != id);
+        localStorage.setItem("sites", JSON.stringify(sites));
+        renderSites();
+      }
+    }, 1000);
   });
-  if (!overdue.length) { alert("No overdue sites."); return; }
-  let message = overdue.map(s => `${s.name} (${Math.floor((Date.now() - new Date(s.lastVisit)) / (1000*60*60*24))} days)`).join(", ");
-  let url = `https://wa.me/?text=${encodeURIComponent(message + " are overdue!")}`;
+  el.addEventListener("mouseup", () => clearTimeout(timer));
+  el.addEventListener("mouseleave", () => clearTimeout(timer));
+}
+
+// WhatsApp Share
+function shareWhatsApp(category) {
+  const list = sites
+    .filter(s => s.category === category)
+    .map(
+      s =>
+        `${s.name}: ${
+          s.lastVisit || "No date"
+        }`
+    )
+    .join("\n");
+
+  const url = `https://wa.me/?text=${encodeURIComponent(list)}`;
   window.open(url, "_blank");
 }
 
-// Settings
-function openSettings() { document.getElementById("settingsModal").classList.remove("hidden"); }
+// Settings modal
+function openSettings() {
+  document.getElementById("settingsModal").classList.remove("hidden");
+  document.getElementById("thresholdInput").value =
+    localStorage.getItem("threshold") || threshold;
+}
+function closeSettings() {
+  document.getElementById("settingsModal").classList.add("hidden");
+}
 function saveSettings() {
   threshold = parseInt(document.getElementById("thresholdInput").value) || 7;
   localStorage.setItem("threshold", threshold);
   renderSites();
-  document.getElementById("settingsModal").classList.add("hidden");
+  closeSettings();
 }
-function clearCacheAndReload(full=false) {
-  if (full) localStorage.clear();
-  caches.keys().then(names => names.forEach(name => caches.delete(name)));
-  location.reload(true);
+
+// Clear cache/reset
+function clearCacheAndReload(full = false) {
+  if ("caches" in window) {
+    caches.keys().then(names => {
+      for (let name of names) caches.delete(name);
+    });
+  }
+  if (full) {
+    localStorage.clear();
+  }
+  location.reload();
 }
 
 // PWA install
-window.addEventListener('beforeinstallprompt', (e) => {
+let deferredPrompt;
+window.addEventListener("beforeinstallprompt", e => {
   e.preventDefault();
   deferredPrompt = e;
-  const installBtn = document.getElementById('installBtn');
-  installBtn.style.display = 'block';
+  document.getElementById("installBtn").classList.remove("hidden");
 });
 function installApp() {
   if (deferredPrompt) {
     deferredPrompt.prompt();
-    deferredPrompt.userChoice.then((choiceResult) => {
-      deferredPrompt = null;
-      document.getElementById('installBtn').style.display = 'none';
-    });
+    deferredPrompt.userChoice.finally(() => (deferredPrompt = null));
   }
 }
 
-// Service Worker registration
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sites-visit-tracker/service-worker.js')
-      .then(reg => console.log('SW registered:', reg.scope))
-      .catch(err => console.log('SW registration failed:', err));
-  });
-}
-
-// Init
+// Initial render
 renderSites();
-
-// Notifications daily
-if ("Notification" in window && Notification.permission !== "denied") {
-  Notification.requestPermission();
-}
-setInterval(() => {
-  sites.forEach(s => {
-    let days = s.lastVisit ? Math.floor((Date.now() - new Date(s.lastVisit)) / (1000*60*60*24)) : Infinity;
-    if (days > threshold) {
-      new Notification("Site Overdue", { body: `${s.name} not visited in ${days} days.` });
-    }
-  });
-}, 24*60*60*1000);
