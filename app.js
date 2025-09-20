@@ -172,9 +172,7 @@ function shareWhatsApp(category) {
     if (d === null) {
       message += `- ${site.name} has never been visited.\n`;
     } else if (d > threshold) {
-      message += `- ${site.name} is not visited ${d} day${
-        d !== 1 ? "s" : ""
-      } ago.\n`;
+      message += `- ${site.name} is not visited ${d} day${d !== 1 ? "s" : ""} are passed.\n`;
     } else {
       message += `- ${site.name} visited ${d} day${d !== 1 ? "s" : ""} ago.\n`;
     }
@@ -183,6 +181,7 @@ function shareWhatsApp(category) {
   const url = `https://wa.me/?text=${encodeURIComponent(message)}`;
   window.open(url, "_blank");
 }
+
 
 // =====================
 // Long press delete
