@@ -58,23 +58,28 @@
   </div>
 
   <!-- Settings Modal -->
-  <div id="settingsModal" class="hidden fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center">
-    <div class="bg-white rounded-lg p-6 w-96 shadow-lg">
-      <h3 class="text-xl font-semibold mb-4">Settings ⚙️</h3>
+<div id="settingsModal" class="hidden fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center">
+  <div class="bg-white rounded-lg p-6 w-96 shadow-lg relative">
+    <!-- Header with close button -->
+    <div class="flex justify-between items-center mb-4">
+      <h3 class="text-xl font-semibold">Settings ⚙️</h3>
+      <button onclick="closeSettings()" class="text-gray-500 hover:text-gray-700 text-xl">&times;</button>
+    </div>
 
-      <label class="block mb-2 font-medium">Alarm threshold (days):</label>
-      <input type="number" id="thresholdInput" min="1" class="w-full p-2 border rounded mb-4">
+    <label class="block mb-2 font-medium">Alarm threshold (days):</label>
+    <input type="number" id="thresholdInput" min="1" class="w-full p-2 border rounded mb-4">
 
-      <p class="text-sm text-gray-600 mb-4">App developed by <b>Engr. Adnan Rafiq</b></p>
+    <p class="text-sm text-gray-600 mb-4">App developed by <b>Engr. Adnan Rafiq</b></p>
 
-      <div class="flex flex-col space-y-2">
-        <button onclick="saveSettings()" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Save</button>
-        <button onclick="clearCacheAndReload(false)" class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">Clear Cache Only</button>
-        <button onclick="clearCacheAndReload(true)" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">Full Reset</button>
-        <button id="installBtn" onclick="installApp()" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 hidden">📲 Install App</button>
-      </div>
+    <div class="flex flex-col space-y-2">
+      <button onclick="saveSettings()" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Save</button>
+      <button onclick="clearCacheAndReload(false)" class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">Clear Cache Only</button>
+      <button onclick="clearCacheAndReload(true)" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">Full Reset</button>
+      <button id="installBtn" onclick="installApp()" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 hidden">📲 Install App</button>
     </div>
   </div>
+</div>
+
 
   <!-- Scripts -->
   <script src="app.js"></script>
