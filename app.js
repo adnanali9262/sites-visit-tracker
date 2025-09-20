@@ -7,30 +7,37 @@ function renderSites() {
     const section = document.getElementById(`${category}-section`);
     section.innerHTML = "";
 
-    sites
-      .filter(site => site.category === category)
-      .forEach(site => {
-        const daysPassed = site.lastVisit
-          ? Math.floor((Date.now() - new Date(site.lastVisit)) / (1000 * 60 * 60 * 24))
-          : 0;
+    let filtered = sites.filter(site => site.category === category);
 
-        // ✅ Green if within threshold, solid Red if overdue (never changes to pink)
-        const bgColor = daysPassed <= threshold ? "#d1fae5" : "#fecaca";
+    // ✅ Sort: most overdue (largest daysPassed) first
+    filtered.sort((a, b) => {
+      const daysA = a.lastVisit ? Math.floor((Date.now() - new Date(a.lastVisit)) / (1000 * 60 * 60 * 24)) : Infinity;
+      const daysB = b.lastVisit ? Math.floor((Date.now() - new Date(b.lastVisit)) / (1000 * 60 * 60 * 24)) : Infinity;
+      return daysB - daysA; // descending
+    });
 
-        const card = document.createElement("div");
-        card.className = `p-3 rounded shadow flex justify-between items-center`;
-        card.style.backgroundColor = bgColor;
+    filtered.forEach(site => {
+      const daysPassed = site.lastVisit
+        ? Math.floor((Date.now() - new Date(site.lastVisit)) / (1000 * 60 * 60 * 24))
+        : 0;
 
-        card.innerHTML = `
-          <span class="font-medium site-name cursor-pointer">${site.name}</span>
-          <input type="date" value="${site.lastVisit || ""}" 
-            onchange="updateDate('${site.id}', this.value)" 
-            class="border rounded p-1 text-sm ml-3">
-        `;
+      // ✅ Color: green if within threshold, red if overdue (no more pink shades)
+      const bgColor = daysPassed <= threshold ? "#d1fae5" : "#fecaca";
 
-        attachLongPress(card.querySelector(".site-name"), site.id);
-        section.appendChild(card);
-      });
+      const card = document.createElement("div");
+      card.className = `p-3 rounded shadow flex justify-between items-center`;
+      card.style.backgroundColor = bgColor;
+
+      card.innerHTML = `
+        <span class="font-medium site-name cursor-pointer">${site.name}</span>
+        <input type="date" value="${site.lastVisit || ""}" 
+          onchange="updateDate('${site.id}', this.value)" 
+          class="border rounded p-1 text-sm ml-3">
+      `;
+
+      attachLongPress(card.querySelector(".site-name"), site.id);
+      section.appendChild(card);
+    });
   });
 }
 
