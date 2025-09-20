@@ -17,16 +17,17 @@ function renderSites() {
     });
 
     filtered.forEach(site => {
-      const daysPassed = site.lastVisit
-        ? Math.floor((Date.now() - new Date(site.lastVisit)) / (1000 * 60 * 60 * 24))
-        : 0;
+const daysPassed = site.lastVisit
+  ? Math.floor((Date.now() - new Date(site.lastVisit)) / (1000 * 60 * 60 * 24))
+  : 0;
 
-      // ✅ Color: green if within threshold, red if overdue (no more pink shades)
-      const bgColor = daysPassed <= threshold ? "#d1fae5" : "#fecaca";
+// ✅ Green if within threshold, solid red if overdue (never pink)
+const bgColor = daysPassed <= threshold ? "#d1fae5" : "#ef4444";
 
-      const card = document.createElement("div");
-      card.className = `p-3 rounded shadow flex justify-between items-center`;
-      card.style.backgroundColor = bgColor;
+const card = document.createElement("div");
+card.className = `p-3 rounded shadow flex justify-between items-center`;
+card.style.backgroundColor = bgColor;
+
 
       card.innerHTML = `
         <span class="font-medium site-name cursor-pointer">${site.name}</span>
