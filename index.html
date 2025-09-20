@@ -63,7 +63,7 @@
       <h3 class="text-xl font-semibold mb-4">Settings ⚙️</h3>
 
       <label class="block mb-2 font-medium">Alarm threshold (days):</label>
-      <input type="number" id="thresholdInput" value="7" min="1" class="w-full p-2 border rounded mb-4">
+      <input type="number" id="thresholdInput" min="1" class="w-full p-2 border rounded mb-4">
 
       <p class="text-sm text-gray-600 mb-4">App developed by <b>Engr. Adnan Rafiq</b></p>
 
@@ -76,6 +76,14 @@
     </div>
   </div>
 
+  <!-- Scripts -->
   <script src="app.js"></script>
+  <script>
+    // Ensure threshold input always reflects saved value
+    document.addEventListener("DOMContentLoaded", () => {
+      const saved = localStorage.getItem("threshold") || 7;
+      document.getElementById("thresholdInput").value = saved;
+    });
+  </script>
 </body>
 </html>
