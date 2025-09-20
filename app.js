@@ -186,7 +186,7 @@ function shareWhatsApp(category) {
     const d = daysSince(s.lastVisit);
     return d === null
       ? `${s.name} (never visited)`
-      : `${s.name} is not visited ${d} day${d !== 1 ? "s" : ""} ago`;
+      : `${s.name} is not visited ${d} day${d !== 1 ? "s" : ""} passed`;
   });
 
   const message = parts.join(", ");
