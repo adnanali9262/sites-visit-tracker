@@ -1,17 +1,5 @@
-let sites = JSON.parse(localStorage.getItem("sites")) || [];
+let sites = JSON.parse(localStorage.getItem("sites") || "[]");
 let threshold = parseInt(localStorage.getItem("threshold")) || 7;
-let deferredPrompt;
-
-// Generate unique ID
-function createId() {
-  return "_" + Math.random().toString(36).substr(2, 9);
-}
-
-// Save sites
-function saveSites() {
-  localStorage.setItem("sites", JSON.stringify(sites));
-  renderSites();
-}
 
 // Render site cards
 function renderSites() {
@@ -23,12 +11,12 @@ function renderSites() {
     filtered.sort((a, b) => new Date(a.lastVisit || 0) - new Date(b.lastVisit || 0));
 
     filtered.forEach(site => {
-      let daysPassed = site.lastVisit ? Math.floor((Date.now() - new Date(site.lastVisit)) / (1000*60*60*24)) : 0;
+      let daysPassed = site.lastVisit
+        ? Math.floor((Date.now() - new Date(site.lastVisit)) / (1000 * 60 * 60 * 24))
+        : 0;
 
-      // Gradient color
-      let bgColor = daysPassed <= threshold 
-        ? "#d1fae5"
-        : `hsl(0, 70%, ${Math.min(50 + (daysPassed - threshold)*5, 90)}%)`;
+      // ✅ Fixed logic: green if within threshold, red if overdue
+      let bgColor = daysPassed <= threshold ? "#d1fae5" : "#fecaca"; // green-100 vs red-200
 
       let card = document.createElement("div");
       card.className = `p-3 rounded shadow flex justify-between items-center`;
@@ -48,116 +36,82 @@ function renderSites() {
   });
 }
 
-// Update date
+// Add new site
+function addSite(category) {
+  let name = prompt("Enter site name:");
+  if (!name) return;
+  let newSite = { id: Date.now(), name, category, lastVisit: "" };
+  sites.push(newSite);
+  localStorage.setItem("sites", JSON.stringify(sites));
+  renderSites();
+}
+
+// Update last visit date
 function updateDate(id, date) {
-  let site = sites.find(s => s.id === id);
-  if (site) {
-    site.lastVisit = date;
-    saveSites();
-  }
+  let site = sites.find(s => s.id == id);
+  site.lastVisit = date;
+  localStorage.setItem("sites", JSON.stringify(sites));
+  renderSites();
 }
 
-// Long press
-function attachLongPress(element, id) {
-  let pressTimer;
-  element.addEventListener("touchstart", e => { pressTimer = setTimeout(() => handleEditDelete(id), 600); });
-  element.addEventListener("mousedown", e => { pressTimer = setTimeout(() => handleEditDelete(id), 600); });
-  element.addEventListener("mouseup", e => clearTimeout(pressTimer));
-  element.addEventListener("mouseleave", e => clearTimeout(pressTimer));
-}
-
-// Edit/Delete
-function handleEditDelete(id) {
-  let site = sites.find(s => s.id === id);
-  if (!site) return;
-
-  if (confirm("Edit site name?")) {
-    let newName = prompt("Enter new site name:", site.name);
-    if (newName) site.name = newName;
-  } else if (confirm("Delete this site?")) {
-    sites = sites.filter(s => s.id !== id);
-  }
-  saveSites();
-}
-
-// Add site
-function showAddSiteDialog() { document.getElementById("addSiteDialog").classList.remove("hidden"); }
-function closeAddSiteDialog() { document.getElementById("addSiteDialog").classList.add("hidden"); }
-function addSite() {
-  let name = document.getElementById("siteNameInput").value.trim();
-  let category = document.getElementById("siteCategoryInput").value;
-  if (name) {
-    sites.push({ id: createId(), name, category, lastVisit: "" });
-    saveSites();
-    closeAddSiteDialog();
-    document.getElementById("siteNameInput").value = "";
-  }
-}
-
-// WhatsApp
-function shareWhatsApp(category) {
-  let overdue = sites.filter(s => s.category === category).filter(s => {
-    let daysPassed = s.lastVisit ? Math.floor((Date.now() - new Date(s.lastVisit)) / (1000*60*60*24)) : Infinity;
-    return daysPassed > threshold;
+// Long press to delete site
+function attachLongPress(el, id) {
+  let timer;
+  el.addEventListener("mousedown", () => {
+    timer = setTimeout(() => {
+      if (confirm("Delete this site?")) {
+        sites = sites.filter(s => s.id != id);
+        localStorage.setItem("sites", JSON.stringify(sites));
+        renderSites();
+      }
+    }, 1000);
   });
-  if (!overdue.length) { alert("No overdue sites."); return; }
-  let message = overdue.map(s => `${s.name} (${Math.floor((Date.now() - new Date(s.lastVisit)) / (1000*60*60*24))} days)`).join(", ");
-  let url = `https://wa.me/?text=${encodeURIComponent(message + " are overdue!")}`;
-  window.open(url, "_blank");
+  el.addEventListener("mouseup", () => clearTimeout(timer));
+  el.addEventListener("mouseleave", () => clearTimeout(timer));
 }
 
-// Settings
-function openSettings() { document.getElementById("settingsModal").classList.remove("hidden"); }
+// Settings modal
+function openSettings() {
+  document.getElementById("settingsModal").classList.remove("hidden");
+  document.getElementById("thresholdInput").value =
+    localStorage.getItem("threshold") || threshold;
+}
+function closeSettings() {
+  document.getElementById("settingsModal").classList.add("hidden");
+}
 function saveSettings() {
   threshold = parseInt(document.getElementById("thresholdInput").value) || 7;
   localStorage.setItem("threshold", threshold);
   renderSites();
-  document.getElementById("settingsModal").classList.add("hidden");
-}
-function clearCacheAndReload(full=false) {
-  if (full) localStorage.clear();
-  caches.keys().then(names => names.forEach(name => caches.delete(name)));
-  location.reload(true);
+  closeSettings();
 }
 
-// PWA install
-window.addEventListener('beforeinstallprompt', (e) => {
+// Clear cache or reset
+function clearCacheAndReload(full = false) {
+  if ("caches" in window) {
+    caches.keys().then(names => {
+      for (let name of names) caches.delete(name);
+    });
+  }
+  if (full) {
+    localStorage.clear();
+  }
+  location.reload();
+}
+
+// PWA Install
+let deferredPrompt;
+window.addEventListener("beforeinstallprompt", e => {
   e.preventDefault();
   deferredPrompt = e;
-  const installBtn = document.getElementById('installBtn');
-  installBtn.style.display = 'block';
+  document.getElementById("installBtn").classList.remove("hidden");
 });
 function installApp() {
   if (deferredPrompt) {
     deferredPrompt.prompt();
-    deferredPrompt.userChoice.then((choiceResult) => {
-      deferredPrompt = null;
-      document.getElementById('installBtn').style.display = 'none';
-    });
+    deferredPrompt.userChoice.finally(() => (deferredPrompt = null));
   }
 }
 
-// Service Worker registration
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sites-visit-tracker/service-worker.js')
-      .then(reg => console.log('SW registered:', reg.scope))
-      .catch(err => console.log('SW registration failed:', err));
-  });
-}
-
-// Init
+// Initial render
 renderSites();
-
-// Notifications daily
-if ("Notification" in window && Notification.permission !== "denied") {
-  Notification.requestPermission();
-}
-setInterval(() => {
-  sites.forEach(s => {
-    let days = s.lastVisit ? Math.floor((Date.now() - new Date(s.lastVisit)) / (1000*60*60*24)) : Infinity;
-    if (days > threshold) {
-      new Notification("Site Overdue", { body: `${s.name} not visited in ${days} days.` });
-    }
-  });
-}, 24*60*60*1000);
