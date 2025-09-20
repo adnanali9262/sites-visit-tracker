@@ -1,4 +1,4 @@
-// app.js - full updated version (drop-in replacement)
+// app.js - cleaned (📲 button removed)
 
 let sites = JSON.parse(localStorage.getItem("sites") || "[]");
 let threshold = parseInt(localStorage.getItem("threshold")) || 7;
@@ -51,7 +51,7 @@ function renderSites() {
       const card = document.createElement("div");
       card.className = "p-3 rounded shadow flex justify-between items-center";
 
-      // background color: green if within threshold, solid red if overdue (no pink)
+      // background color: green if within threshold, solid red if overdue
       if (isOverdue) {
         card.classList.add("bg-red-500", "text-white");
       } else {
@@ -84,29 +84,8 @@ function renderSites() {
       left.appendChild(dateInput);
       left.appendChild(daysBadge);
 
-      // right: whatsapp button (per-card)
-      const right = document.createElement("div");
-      right.className = "flex items-center";
-
-      const waBtn = document.createElement("button");
-      waBtn.type = "button";
-      waBtn.title = "Share on WhatsApp";
-      // Ensure the button is visible on both red and green backgrounds
-      waBtn.className = isOverdue ? "ml-3 p-1 rounded bg-white text-red-500" : "ml-3 p-1 rounded bg-green-700 text-white";
-      waBtn.textContent = "📲";
-      waBtn.addEventListener("click", () => {
-        const daysText = (d === null) ? null : `${d} day${d !== 1 ? "s" : ""}`;
-        const message = d === null
-          ? `${site.name} has never been visited.`
-          : `${site.name} is not visited ${daysText} ago.`;
-        const url = `https://wa.me/?text=${encodeURIComponent(message)}`;
-        window.open(url, "_blank");
-      });
-
       // assemble
-      right.appendChild(waBtn);
       card.appendChild(left);
-      card.appendChild(right);
 
       // attach long press to name for edit/delete
       attachLongPress(nameSpan, site.id);
@@ -146,7 +125,7 @@ function attachLongPress(element, id) {
   element.addEventListener("mouseleave", cancel);
 }
 
-// Edit or delete handler (existing pattern: ask edit first, else delete)
+// Edit or delete handler
 function handleEditDelete(id) {
   const site = sites.find(s => s.id === id);
   if (!site) return;
@@ -165,7 +144,7 @@ function handleEditDelete(id) {
   }
 }
 
-// Add site dialog controls (index.html calls these)
+// Add site dialog controls
 function showAddSiteDialog() {
   const dlg = document.getElementById("addSiteDialog");
   if (dlg) dlg.classList.remove("hidden");
@@ -195,7 +174,7 @@ function shareWhatsApp(category) {
     .filter(s => s.category === category)
     .filter(s => {
       const d = daysSince(s.lastVisit);
-      return d === null ? true : d > threshold; // treat never-visited as overdue
+      return d === null ? true : d > threshold;
     });
 
   if (!overdue.length) {
@@ -207,15 +186,15 @@ function shareWhatsApp(category) {
     const d = daysSince(s.lastVisit);
     return d === null
       ? `${s.name} (never visited)`
-      : `${s.name} (${d} day${d !== 1 ? "s" : ""})`;
+      : `${s.name} is not visited ${d} day${d !== 1 ? "s" : ""} ago`;
   });
 
-  const message = parts.join(", ") + " are overdue!";
+  const message = parts.join(", ");
   const url = `https://wa.me/?text=${encodeURIComponent(message)}`;
   window.open(url, "_blank");
 }
 
-// Settings modal controls (index.html calls openSettings, saveSettings)
+// Settings modal controls
 function openSettings() {
   const modal = document.getElementById("settingsModal");
   if (modal) modal.classList.remove("hidden");
@@ -243,7 +222,6 @@ function clearCacheAndReload(full = false) {
   if ("caches" in window) {
     caches.keys().then(names => names.forEach(n => caches.delete(n)));
   }
-  // reload (force)
   location.reload(true);
 }
 
@@ -264,7 +242,7 @@ function installApp() {
   });
 }
 
-// Service worker registration (keeps your original path)
+// Service worker registration
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/sites-visit-tracker/service-worker.js')
@@ -273,7 +251,7 @@ if ('serviceWorker' in navigator) {
   });
 }
 
-// Notifications (requests once; checks daily while page is open)
+// Notifications (daily check)
 if ("Notification" in window && Notification.permission !== "denied") {
   Notification.requestPermission();
 }
@@ -289,5 +267,5 @@ setInterval(() => {
   });
 }, 24 * 60 * 60 * 1000);
 
-// Initial render on load
+// Initial render
 renderSites();
