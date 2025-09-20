@@ -1,149 +1,108 @@
-let sites = JSON.parse(localStorage.getItem("sites") || "[]");
-let threshold = parseInt(localStorage.getItem("threshold")) || 7;
+document.addEventListener("DOMContentLoaded", () => {
+  const siteForm = document.getElementById("siteForm");
+  const siteInput = document.getElementById("siteInput");
+  const siteList = document.getElementById("siteList");
+  const thresholdInput = document.getElementById("thresholdInput");
+  const settingsMenu = document.getElementById("settingsMenu");
+  const settingsBtn = document.getElementById("settingsBtn");
+  const closeSettingsBtn = document.getElementById("closeSettingsBtn");
 
-// Render sites into sections
-function renderSites() {
-  ["indoor", "outdoor"].forEach(category => {
-    const section = document.getElementById(`${category}-section`);
-    section.innerHTML = "";
+  let sites = JSON.parse(localStorage.getItem("sites")) || [];
+  let threshold = parseInt(localStorage.getItem("threshold")) || 7;
 
-    let filtered = sites.filter(site => site.category === category);
+  thresholdInput.value = threshold;
 
-    // ✅ Sort: most overdue (largest daysPassed) first
-    filtered.sort((a, b) => {
-      const daysA = a.lastVisit ? Math.floor((Date.now() - new Date(a.lastVisit)) / (1000 * 60 * 60 * 24)) : Infinity;
-      const daysB = b.lastVisit ? Math.floor((Date.now() - new Date(b.lastVisit)) / (1000 * 60 * 60 * 24)) : Infinity;
-      return daysB - daysA; // descending
+  // Save threshold change
+  thresholdInput.addEventListener("input", () => {
+    threshold = parseInt(thresholdInput.value) || 7;
+    localStorage.setItem("threshold", threshold);
+    renderSites();
+  });
+
+  // Toggle settings menu
+  settingsBtn.addEventListener("click", () => {
+    settingsMenu.classList.toggle("hidden");
+  });
+
+  // Close settings menu
+  closeSettingsBtn.addEventListener("click", () => {
+    settingsMenu.classList.add("hidden");
+  });
+
+  // Add new site
+  siteForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const name = siteInput.value.trim();
+    if (!name) return;
+
+    sites.push({ name, lastVisit: new Date().toISOString() });
+    localStorage.setItem("sites", JSON.stringify(sites));
+    siteInput.value = "";
+    renderSites();
+  });
+
+  // Render sites
+  function renderSites() {
+    siteList.innerHTML = "";
+
+    // Sort: longest overdue at top
+    sites.sort((a, b) => {
+      const daysA = a.lastVisit
+        ? Math.floor((Date.now() - new Date(a.lastVisit)) / (1000 * 60 * 60 * 24))
+        : 0;
+      const daysB = b.lastVisit
+        ? Math.floor((Date.now() - new Date(b.lastVisit)) / (1000 * 60 * 60 * 24))
+        : 0;
+      return daysB - daysA;
     });
 
-    filtered.forEach(site => {
-const daysPassed = site.lastVisit
-  ? Math.floor((Date.now() - new Date(site.lastVisit)) / (1000 * 60 * 60 * 24))
-  : 0;
+    sites.forEach((site, index) => {
+      const daysPassed = site.lastVisit
+        ? Math.floor((Date.now() - new Date(site.lastVisit)) / (1000 * 60 * 60 * 24))
+        : 0;
 
-// ✅ Green if within threshold, solid red if overdue (never pink)
-const bgColor = daysPassed <= threshold ? "#d1fae5" : "#ef4444";
+      // ✅ Colors: green if within threshold, strong red if overdue
+      const bgColor = daysPassed <= threshold ? "#d1fae5" : "#ef4444";
 
-const card = document.createElement("div");
-card.className = `p-3 rounded shadow flex justify-between items-center`;
-card.style.backgroundColor = bgColor;
+      const card = document.createElement("div");
+      card.className =
+        "p-3 rounded shadow flex justify-between items-center mb-2";
+      card.style.backgroundColor = bgColor;
 
-
-      card.innerHTML = `
-        <span class="font-medium site-name cursor-pointer">${site.name}</span>
-        <input type="date" value="${site.lastVisit || ""}" 
-          onchange="updateDate('${site.id}', this.value)" 
-          class="border rounded p-1 text-sm ml-3">
+      const info = document.createElement("div");
+      info.innerHTML = `
+        <strong class="site-name">${site.name}</strong><br>
+        Last Visit: ${site.lastVisit ? new Date(site.lastVisit).toLocaleDateString() : "Never"} 
+        <span class="text-xs text-gray-700">(${daysPassed})</span>
       `;
 
-      attachLongPress(card.querySelector(".site-name"), site.id);
-      section.appendChild(card);
-    });
-  });
-}
-
-// Add site from dialog
-function showAddSiteDialog() {
-  document.getElementById("addSiteDialog").classList.remove("hidden");
-}
-function closeAddSiteDialog() {
-  document.getElementById("addSiteDialog").classList.add("hidden");
-}
-function addSite() {
-  const name = document.getElementById("siteNameInput").value.trim();
-  const category = document.getElementById("siteCategoryInput").value;
-  if (!name) return;
-
-  sites.push({ id: Date.now(), name, category, lastVisit: "" });
-  localStorage.setItem("sites", JSON.stringify(sites));
-  closeAddSiteDialog();
-  renderSites();
-}
-
-// Update site date
-function updateDate(id, date) {
-  const site = sites.find(s => s.id == id);
-  if (site) {
-    site.lastVisit = date;
-    localStorage.setItem("sites", JSON.stringify(sites));
-    renderSites();
-  }
-}
-
-// Long press delete
-function attachLongPress(el, id) {
-  let timer;
-  el.addEventListener("mousedown", () => {
-    timer = setTimeout(() => {
-      if (confirm("Delete this site?")) {
-        sites = sites.filter(s => s.id != id);
+      // ✅ Update button
+      const updateBtn = document.createElement("button");
+      updateBtn.textContent = "Update";
+      updateBtn.className =
+        "ml-2 px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600";
+      updateBtn.addEventListener("click", () => {
+        sites[index].lastVisit = new Date().toISOString();
         localStorage.setItem("sites", JSON.stringify(sites));
         renderSites();
-      }
-    }, 1000);
-  });
-  el.addEventListener("mouseup", () => clearTimeout(timer));
-  el.addEventListener("mouseleave", () => clearTimeout(timer));
-}
+      });
 
-// WhatsApp Share
-function shareWhatsApp(category) {
-  const list = sites
-    .filter(s => s.category === category)
-    .map(
-      s =>
-        `${s.name}: ${
-          s.lastVisit || "No date"
-        }`
-    )
-    .join("\n");
+      // ✅ WhatsApp button
+      const message = `${site.name} is not visited ${daysPassed} day${daysPassed !== 1 ? "s" : ""} ago.`;
+      const whatsappBtn = document.createElement("button");
+      whatsappBtn.className = "ml-2 text-green-600 hover:text-green-800";
+      whatsappBtn.innerHTML = "📲";
+      whatsappBtn.addEventListener("click", () => {
+        const url = `https://wa.me/?text=${encodeURIComponent(message)}`;
+        window.open(url, "_blank");
+      });
 
-  const url = `https://wa.me/?text=${encodeURIComponent(list)}`;
-  window.open(url, "_blank");
-}
-
-// Settings modal
-function openSettings() {
-  document.getElementById("settingsModal").classList.remove("hidden");
-  document.getElementById("thresholdInput").value =
-    localStorage.getItem("threshold") || threshold;
-}
-function closeSettings() {
-  document.getElementById("settingsModal").classList.add("hidden");
-}
-function saveSettings() {
-  threshold = parseInt(document.getElementById("thresholdInput").value) || 7;
-  localStorage.setItem("threshold", threshold);
-  renderSites();
-  closeSettings();
-}
-
-// Clear cache/reset
-function clearCacheAndReload(full = false) {
-  if ("caches" in window) {
-    caches.keys().then(names => {
-      for (let name of names) caches.delete(name);
+      card.appendChild(info);
+      card.appendChild(updateBtn);
+      card.appendChild(whatsappBtn);
+      siteList.appendChild(card);
     });
   }
-  if (full) {
-    localStorage.clear();
-  }
-  location.reload();
-}
 
-// PWA install
-let deferredPrompt;
-window.addEventListener("beforeinstallprompt", e => {
-  e.preventDefault();
-  deferredPrompt = e;
-  document.getElementById("installBtn").classList.remove("hidden");
+  renderSites();
 });
-function installApp() {
-  if (deferredPrompt) {
-    deferredPrompt.prompt();
-    deferredPrompt.userChoice.finally(() => (deferredPrompt = null));
-  }
-}
-
-// Initial render
-renderSites();
