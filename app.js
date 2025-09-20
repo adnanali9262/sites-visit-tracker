@@ -14,11 +14,12 @@ function renderSites() {
           ? Math.floor((Date.now() - new Date(site.lastVisit)) / (1000 * 60 * 60 * 24))
           : 0;
 
-        // ✅ Green if within threshold, Red if over threshold (never pink)
-        const bgClass = daysPassed <= threshold ? "bg-green-100" : "bg-red-200";
+        // ✅ Green if within threshold, solid Red if overdue (never changes to pink)
+        const bgColor = daysPassed <= threshold ? "#d1fae5" : "#fecaca";
 
         const card = document.createElement("div");
-        card.className = `p-3 rounded shadow flex justify-between items-center ${bgClass}`;
+        card.className = `p-3 rounded shadow flex justify-between items-center`;
+        card.style.backgroundColor = bgColor;
 
         card.innerHTML = `
           <span class="font-medium site-name cursor-pointer">${site.name}</span>
