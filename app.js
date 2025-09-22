@@ -165,22 +165,28 @@ function shareWhatsApp(category) {
   const sites = loadSites().filter((s) => s.category === category);
   const threshold = loadThreshold();
 
-  let message = `${category.toUpperCase()} Sites:\n`;
+  // Only overdue sites
+  const overdue = sites.filter((s) => {
+    const d = daysSince(s.lastVisit);
+    return d !== null && d > threshold;
+  });
 
-  sites.forEach((site) => {
+  if (!overdue.length) {
+    alert("No overdue sites.");
+    return;
+  }
+
+  // Build message only for overdue
+  let message = `${category.toUpperCase()} overdue sites:\n`;
+  overdue.forEach((site) => {
     const d = daysSince(site.lastVisit);
-    if (d === null) {
-      message += `- ${site.name} has never been visited.\n`;
-    } else if (d > threshold) {
-      message += `- ${site.name} is not visited ${d} day${d !== 1 ? "s" : ""} are passed.\n`;
-    } else {
-      message += `- ${site.name} visited ${d} day${d !== 1 ? "s" : ""} ago.\n`;
-    }
+    message += `- ${site.name} is not visited ${d} day${d !== 1 ? "s" : ""} are passed.\n`;
   });
 
   const url = `https://wa.me/?text=${encodeURIComponent(message)}`;
   window.open(url, "_blank");
 }
+
 
 
 // =====================
