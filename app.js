@@ -177,7 +177,7 @@ function shareWhatsApp(category) {
   }
 
   // Build message only for overdue
-  let message = `${category.toUpperCase()} overdue sites:\n`;
+  let message = `visit overdue at sites:\n`;
   overdue.forEach((site) => {
     const d = daysSince(site.lastVisit);
     message += `- ${site.name} is not visited ${d} day${d !== 1 ? "s" : ""} are passed.\n`;
